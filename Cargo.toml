@@ -1,0 +1,29 @@
+[package]
+name = "treecmd"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "tree"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+walkdir = "2.5"
+regex = "1.10"
+atty = "0.2.14"
+
+# 可选依赖
+colored = { version = "2.1", optional = true }
+
+[features]
+default = ["color"]
+color = ["dep:colored"]
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+panic = 'abort'
+strip = true
+
