@@ -7,102 +7,102 @@ use atty;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// 显示所有文件和目录，包括隐藏文件
+    /// Show all files and directories, including hidden ones
     #[arg(short = 'a', long = "all")]
     pub all: bool,
     
-    /// 使用ASCII线条字符（└, ├, ─, │）
+    /// Use ASCII line-drawing characters (└, ├, ─, │)
     #[arg(short = 'A', long = "ascii")]
     pub ascii: bool,
     
-    /// 彩色输出文件名
+    /// Colorize output filenames
     #[arg(short = 'C', long = "color")]
     pub color: bool,
     
-    /// 仅显示目录，不显示文件
+    /// List directories only, omit files
     #[arg(short = 'd', long = "dirs-only")]
     pub dirs_only: bool,
     
-    /// 显示文件最后修改时间
+    /// Show last modification time of files
     #[arg(short = 'D', long = "mtime")]
     pub mtime: bool,
     
-    /// 在目录后添加"/"，可执行文件后添加"*"，符号链接后添加"@"
+    /// Append '/' to directories, '*' to executables, '@' to symbolic links
     #[arg(short = 'F', long = "filelimit")]
     pub filelimit: bool,
     
-    /// 显示每个文件的完整路径前缀
+    /// Print full path prefix for each file
     #[arg(short = 'f', long = "full-path")]
     pub full_path: bool,
     
-    /// 显示文件所属组名称或GID
+    /// Show group name or GID for each file
     #[arg(short = 'g', long = "gid")]
     pub gid: bool,
     
-    /// 不显示缩进线，仅显示文件列表
+    /// Don't print indentation lines, only file list
     #[arg(short = 'i', long = "noreport")]
     pub noreport: bool,
     
-    /// 排除匹配指定模式的文件和目录
+    /// Exclude files and directories matching the given pattern
     #[arg(short = 'I', long = "exclude")]
     pub exclude: Option<String>,
     
-    /// 跟随符号链接，视为目录
+    /// Follow symbolic links as if they were directories
     #[arg(short = 'l', long = "follow-links")]
     pub follow_links: bool,
     
-    /// 不显示彩色输出
+    /// Disable colorized output
     #[arg(short = 'n', long = "no-color")]
     pub no_color: bool,
     
-    /// 直接显示不可打印字符
+    /// Print non-printable characters as-is
     #[arg(short = 'N', long = "literal")]
     pub literal: bool,
     
-    /// 仅显示匹配指定模式的文件和目录
+    /// Show only files and directories matching the given pattern
     #[arg(short = 'P', long = "include")]
     pub include: Option<String>,
     
-    /// 显示文件权限
+    /// Show file permissions
     #[arg(short = 'p', long = "perms")]
     pub perms: bool,
     
-    /// 用问号代替不可打印字符
+    /// Replace non-printable characters with '?'
     #[arg(short = 'q', long = "quiet")]
     pub quiet: bool,
     
-    /// 显示每个文件的大小
+    /// Show size of each file
     #[arg(short = 's', long = "size")]
     pub size: bool,
     
-    /// 按修改时间排序，最新的在前
+    /// Sort files by modification time, newest first
     #[arg(short = 't', long = "sort")]
     pub sort: Option<String>,
     
-    /// 显示文件所有者名称或UID
+    /// Show owner name or UID for each file
     #[arg(short = 'u', long = "uid")]
     pub uid: bool,
     
-    /// 仅遍历当前文件系统
+    /// Stay on the same filesystem
     #[arg(short = 'x', long = "samefilesystem")]
     pub samefilesystem: bool,
     
-    /// 限制显示的目录深度
+    /// Limit the depth of directories displayed
     #[arg(short = 'L', long = "level")]
     pub level: Option<usize>,
     
-    /// 起始目录（默认为当前目录）
+    /// Starting directory (defaults to current directory)
     pub path: Option<PathBuf>,
     
-    /// 增强功能：以JSON格式输出结果
+    /// Output results in JSON format
     #[arg(long = "json")]
     pub json: bool,
     
-    /// 增强功能：显示处理进度
+    /// Display processing progress
     #[arg(long = "progress")]
     pub progress: bool,
     
-    /// 增强功能：指定并行处理的线程数
+    /// Number of threads for parallel processing
     #[arg(long = "threads")]
     pub threads: Option<usize>,
 }
