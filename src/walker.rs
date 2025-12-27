@@ -1,8 +1,8 @@
 use crate::config::Config;
+use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
-use indicatif::{ProgressBar, ProgressStyle};
 
 /// 目录遍历引擎
 pub struct Walker {
@@ -12,9 +12,7 @@ pub struct Walker {
 impl Walker {
     /// 创建新的遍历器
     pub fn new(config: Config) -> Self {
-        Self {
-            config,
-        }
+        Self { config }
     }
 
     /// 获取起始路径
@@ -36,21 +34,20 @@ impl Walker {
         // 检查是否是隐藏文件/目录或隐藏目录的子目录
         if !self.config.args.all {
             // 检查当前条目是否是隐藏文件/目录
-            if let Some(file_name) = entry.file_name().to_str() {
-                if file_name.starts_with(".") {
-                    return false;
-                }
+            if let Some(file_name) = entry.file_name().to_str()
+                && file_name.starts_with(".")
+            {
+                return false;
             }
 
             // 检查当前条目是否是隐藏目录的子目录
             let mut current_path = entry.path();
             while let Some(parent) = current_path.parent() {
-                if let Some(file_name) = parent.file_name() {
-                    if let Some(name_str) = file_name.to_str() {
-                        if name_str.starts_with(".") {
-                            return false;
-                        }
-                    }
+                if let Some(file_name) = parent.file_name()
+                    && let Some(name_str) = file_name.to_str()
+                    && name_str.starts_with(".")
+                {
+                    return false;
                 }
                 current_path = parent;
             }
@@ -62,12 +59,11 @@ impl Walker {
         }
 
         // 检查排除模式
-        if let Some(exclude_regex) = &self.config.exclude_regex {
-            if let Some(file_name) = entry.file_name().to_str() {
-                if exclude_regex.is_match(file_name) {
-                    return false;
-                }
-            }
+        if let Some(exclude_regex) = &self.config.exclude_regex
+            && let Some(file_name) = entry.file_name().to_str()
+            && exclude_regex.is_match(file_name)
+        {
+            return false;
         }
 
         // 检查包含模式
@@ -156,7 +152,8 @@ impl Walker {
             };
 
             // 添加到父目录的组中
-            dir_groups.entry(parent_path.to_path_buf())
+            dir_groups
+                .entry(parent_path.to_path_buf())
                 .or_insert_with(Vec::new)
                 .push(entry.clone());
         }
@@ -178,7 +175,7 @@ impl Walker {
         &self,
         dir_groups: &std::collections::HashMap<std::path::PathBuf, Vec<DirEntry>>,
         dir: &DirEntry,
-        result: &mut Vec<DirEntry>
+        result: &mut Vec<DirEntry>,
     ) {
         // 检查当前目录是否有子目录
         if let Some(children) = dir_groups.get(dir.path()) {
@@ -289,7 +286,8 @@ impl Walker {
         let root = root_opt.unwrap().clone();
 
         // 按父目录分组
-        let mut dir_groups: std::collections::HashMap<PathBuf, Vec<DirEntry>> = std::collections::HashMap::new();
+        let mut dir_groups: std::collections::HashMap<PathBuf, Vec<DirEntry>> =
+            std::collections::HashMap::new();
 
         for entry in &entries {
             if entry.depth() == 0 {
@@ -297,8 +295,9 @@ impl Walker {
             }
 
             if let Some(parent_path) = entry.path().parent() {
-                dir_groups.entry(parent_path.to_path_buf())
-                    .or_insert_with(Vec::new)
+                dir_groups
+                    .entry(parent_path.to_path_buf())
+                    .or_default()
                     .push(entry.clone());
             }
         }
@@ -319,10 +318,8 @@ impl Walker {
     ) {
         if let Some(children) = dir_groups.get(dir.path()) {
             // 使用rayon并行排序当前目录的子条目
-            let mut sorted_children: Vec<DirEntry> = children
-                .par_iter()
-                .map(|e| e.clone())
-                .collect();
+            let mut sorted_children: Vec<DirEntry> =
+                children.par_iter().map(|e| e.clone()).collect();
 
             sorted_children.par_sort_by(|a, b| {
                 // 目录排在文件前面
@@ -344,9 +341,7 @@ impl Walker {
                         let b_meta = b.metadata().unwrap();
                         b_meta.modified().unwrap().cmp(&a_meta.modified().unwrap())
                     }
-                    Some(_) | None => {
-                        a.file_name().cmp(b.file_name())
-                    }
+                    Some(_) | None => a.file_name().cmp(b.file_name()),
                 }
             });
 
@@ -360,5 +355,4 @@ impl Walker {
             }
         }
     }
-
 }

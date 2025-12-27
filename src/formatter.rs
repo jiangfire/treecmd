@@ -131,14 +131,10 @@ impl Formatter {
     /// 格式化修改时间
     fn format_mtime(&self, entry: &DirEntry) -> String {
         match entry.metadata() {
-            Ok(meta) => {
-                match meta.modified() {
-                    Ok(time) => {
-                        self.format_time(time)
-                    }
-                    Err(_) => "".to_string(),
-                }
-            }
+            Ok(meta) => match meta.modified() {
+                Ok(time) => self.format_time(time),
+                Err(_) => "".to_string(),
+            },
             Err(_) => "".to_string(),
         }
     }
@@ -189,22 +185,27 @@ impl Formatter {
         // 添加文件类型指示符
         if self.config.args.filelimit {
             if entry.file_type().is_dir() {
-                filename.push_str("/");
+                filename.push('/');
             } else if entry.file_type().is_symlink() {
-                filename.push_str("@");
+                filename.push('@');
             } else if self.is_executable(entry) {
                 // 可执行文件添加 * 标记
-                filename.push_str("*");
+                filename.push('*');
             }
         }
 
         // 处理不可打印字符
         if self.config.args.quiet {
-            filename = filename.chars().map(|c| if c.is_ascii_graphic() || c.is_ascii_whitespace() {
-                c
-            } else {
-                '?'
-            }).collect();
+            filename = filename
+                .chars()
+                .map(|c| {
+                    if c.is_ascii_graphic() || c.is_ascii_whitespace() {
+                        c
+                    } else {
+                        '?'
+                    }
+                })
+                .collect();
         }
 
         // 添加彩色输出
@@ -244,7 +245,7 @@ impl Formatter {
         self.last_entries.clear();
 
         // 遍历所有条目并格式化输出
-        for (_, entry) in entries.iter().enumerate() {
+        for entry in entries.iter() {
             let depth = entry.depth();
 
             // 跳过根目录
@@ -271,10 +272,10 @@ impl Formatter {
                     continue;
                 }
 
-                if let Some(p) = e.path().parent() {
-                    if p == parent_path {
-                        siblings.push(e);
-                    }
+                if let Some(p) = e.path().parent()
+                    && p == parent_path
+                {
+                    siblings.push(e);
                 }
             }
 
@@ -328,12 +329,18 @@ impl Formatter {
         // 打印摘要信息
         if total_dirs_display > 0 || total_files > 0 {
             println!();
-            println!("{} directory{}{} {} file{}",
-                     total_dirs_display,
-                     if total_dirs_display != 1 { "s" } else { "" },
-                     if total_dirs_display > 0 && total_files > 0 { ", " } else { "" },
-                     total_files,
-                     if total_files != 1 { "s" } else { "" });
+            println!(
+                "{} directory{}{} {} file{}",
+                total_dirs_display,
+                if total_dirs_display != 1 { "s" } else { "" },
+                if total_dirs_display > 0 && total_files > 0 {
+                    ", "
+                } else {
+                    ""
+                },
+                total_files,
+                if total_files != 1 { "s" } else { "" }
+            );
         }
     }
 
@@ -382,7 +389,12 @@ impl Formatter {
     }
 
     /// 递归构建子节点
-    fn build_children_recursive(&self, mut parent: FileNode, entries: &[DirEntry], depth: usize) -> FileNode {
+    fn build_children_recursive(
+        &self,
+        mut parent: FileNode,
+        entries: &[DirEntry],
+        depth: usize,
+    ) -> FileNode {
         // 找到当前深度的所有条目
         for entry in entries.iter().filter(|e| e.depth() == depth) {
             // 获取当前条目的父目录

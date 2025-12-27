@@ -5,7 +5,14 @@
       "Bash(cargo run:*)",
       "Bash(cargo test:*)",
       "Bash(cat:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(target/release/tree.exe:*)",
+      "Bash(target/release/tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)"
     ]
   }
 }

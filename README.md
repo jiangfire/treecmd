@@ -32,11 +32,44 @@
 
 ## 安装方法
 
-### 从源码构建
+### 🚀 推荐：从 GitHub Releases 下载（最快）
+
+从 [GitHub Releases](https://github.com/yourusername/treecmd/releases) 页面下载预编译的二进制文件：
+
+```bash
+# Linux x86_64
+wget https://github.com/yourusername/treecmd/releases/latest/download/tree-x86_64-unknown-linux-gnu
+chmod +x tree-x86_64-unknown-linux-gnu
+sudo mv tree-x86_64-unknown-linux-gnu /usr/local/bin/tree
+
+# macOS x86_64
+wget https://github.com/yourusername/treecmd/releases/latest/download/tree-x86_64-apple-darwin
+chmod +x tree-x86_64-apple-darwin
+sudo mv tree-x86_64-apple-darwin /usr/local/bin/tree
+
+# Windows (PowerShell)
+Invoke-WebRequest -Uri "https://github.com/yourusername/treecmd/releases/latest/download/tree-x86_64-pc-windows-msvc.exe" -OutFile "tree.exe"
+# 将 tree.exe 添加到 PATH 环境变量
+```
+
+### 📦 使用包管理器（即将支持）
+
+```bash
+# macOS (Homebrew)
+brew install treecmd
+
+# Linux (curl 一键安装)
+curl -fsSL https://raw.githubusercontent.com/yourusername/treecmd/main/install.sh | bash
+
+# Windows (winget)
+winget install treecmd
+```
+
+### 🔨 从源码构建
 
 ```bash
 # 克隆仓库
-git clone <repository-url>
+git clone https://github.com/yourusername/treecmd.git
 cd treecmd
 
 # 开发构建
@@ -46,11 +79,21 @@ cargo build
 cargo build --release
 
 # 可执行文件位于 target/release/tree.exe (Windows) 或 target/release/tree (Linux/macOS)
+
+# 或使用构建脚本构建所有平台
+chmod +x scripts/build-release.sh
+./scripts/build-release.sh all
 ```
 
-### 直接使用二进制文件
+### 🐧 使用 Cargo 安装
 
-从GitHub Releases页面下载对应平台的二进制文件，添加到系统PATH中即可使用。
+```bash
+# 从 crates.io 安装（发布后）
+cargo install treecmd
+
+# 从 Git 安装（最新开发版）
+cargo install --git https://github.com/yourusername/treecmd.git
+```
 
 ## 使用说明
 

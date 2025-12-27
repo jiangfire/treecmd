@@ -1,7 +1,7 @@
 //! 集成测试 - 测试treecmd的主要功能
 
 use std::path::PathBuf;
-use treecmd::{Args, Config, Walker, Formatter};
+use treecmd::{Args, Config, Formatter, Walker};
 
 /// 使用当前目录进行测试
 fn get_test_path() -> PathBuf {
@@ -262,7 +262,6 @@ fn test_json_output_structure() {
     let _formatter = Formatter::new(config);
 
     // 验证JSON构建不崩溃
-    assert!(true);
 }
 
 #[test]
