@@ -7,11 +7,25 @@ edition = "2024"
 name = "tree"
 path = "src/main.rs"
 
+[lib]
+name = "treecmd"
+path = "src/lib.rs"
+
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 walkdir = "2.5"
 regex = "1.10"
 atty = "0.2.14"
+
+# JSON 输出支持
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# 并行处理支持
+rayon = "1.10"
+
+# 进度显示支持
+indicatif = "0.17"
 
 # 可选依赖
 colored = { version = "2.1", optional = true }
