@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     strategy:
@@ -89,41 +92,72 @@ jobs:
           fi
         shell: bash
 
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            target/${{ matrix.artifact_name }}
-            target/${{ matrix.artifact_asset }}.sha256
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ matrix.artifact_asset }}
+          path: target/${{ matrix.artifact_name }}
+          retention-days: 1
+
+      - name: Upload SHA256 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_asset }}.sha256
+          path: target/${{ matrix.artifact_asset }}.sha256
+          retention-days: 1
 
   create-release:
     needs: build-and-release
     runs-on: ubuntu-latest
     steps:
-      - name: Create Release Summary
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Move artifacts to target directory
         run: |
-          echo "## Release Complete" > release_summary.md
-          echo "" >> release_summary.md
-          echo "✅ All platform binaries have been built and uploaded:" >> release_summary.md
-          echo "" >> release_summary.md
-          echo "- Windows (x86_64)" >> release_summary.md
-          echo "- Linux (x86_64)" >> release_summary.md
-          echo "- Linux (ARM64)" >> release_summary.md
-          echo "- macOS (x86_64)" >> release_summary.md
-          echo "- macOS (ARM64)" >> release_summary.md
-          echo "" >> release_summary.md
-          echo "### Installation" >> release_summary.md
-          echo "Download the appropriate binary for your platform from the Assets section above." >> release_summary.md
-          echo "" >> release_summary.md
-          echo "```bash" >> release_summary.md
-          echo "# Example: Linux x86_64" >> release_summary.md
-          echo "wget https://github.com/yourusername/treecmd/releases/download/vX.Y.Z/tree-x86_64-unknown-linux-gnu" >> release_summary.md
-          echo "chmod +x tree-x86_64-unknown-linux-gnu" >> release_summary.md
-          echo "sudo mv tree-x86_64-unknown-linux-gnu /usr/local/bin/tree" >> release_summary.md
-          echo "```" >> release_summary.md
-          cat release_summary.md
+          mkdir -p target
+          cp -r artifacts/* target/
+          ls -la target/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/tree-x86_64-pc-windows-msvc.exe
+            target/tree-x86_64-unknown-linux-gnu
+            target/tree-aarch64-unknown-linux-gnu
+            target/tree-x86_64-apple-darwin
+            target/tree-aarch64-apple-darwin
+            target/*.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 🌲 Tree Command Release
+
+            ### 📦 Available Binaries
+            - **Windows (x86_64)**: `tree-x86_64-pc-windows-msvc.exe`
+            - **Linux (x86_64)**: `tree-x86_64-unknown-linux-gnu`
+            - **Linux (ARM64)**: `tree-aarch64-unknown-linux-gnu`
+            - **macOS (x86_64)**: `tree-x86_64-apple-darwin`
+            - **macOS (ARM64)**: `tree-aarch64-apple-darwin`
+
+            ### 🔧 Installation
+            ```bash
+            # Linux x86_64
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/tree-x86_64-unknown-linux-gnu
+            chmod +x tree-x86_64-unknown-linux-gnu
+            sudo mv tree-x86_64-unknown-linux-gnu /usr/local/bin/tree
+
+            # Linux ARM64
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/tree-aarch64-unknown-linux-gnu
+            chmod +x tree-aarch64-unknown-linux-gnu
+            sudo mv tree-aarch64-unknown-linux-gnu /usr/local/bin/tree
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
