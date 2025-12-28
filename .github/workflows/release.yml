@@ -67,30 +67,29 @@ jobs:
 
       - name: Build release binary
         run: |
-          if [ "${{ matrix.target }}" != "" ]; then
-            # 设置 aarch64 交叉编译环境变量
-            if [ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]; then
-              export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-              export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-              export CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
-            fi
-            cargo build --release --target ${{ matrix.target }}
-            mv target/${{ matrix.target }}/release/${{ matrix.artifact_name }} target/${{ matrix.artifact_name }}
-          else
-            cargo build --release
-            mv target/release/${{ matrix.artifact_name }} target/${{ matrix.artifact_name }}
+          # 设置 aarch64 交叉编译环境变量
+          if [ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]; then
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+            export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+            export CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
           fi
+
+          # 构建二进制文件
+          cargo build --release --target ${{ matrix.target }}
+
+          # 复制到最终文件名
+          cp target/${{ matrix.target }}/release/${{ matrix.artifact_name }} target/${{ matrix.artifact_asset }}
         shell: bash
 
       - name: Generate SHA256 hash
         id: hash
         run: |
           if [ "${{ runner.os }}" = "Windows" ]; then
-            # Windows: certutil 输出格式为多行，提取哈希值
-            certutil -hashfile target/${{ matrix.artifact_name }} SHA256 | tail -n 1 | cut -d' ' -f1 > target/${{ matrix.artifact_asset }}.sha256
+            # Windows: 使用 PowerShell 计算 SHA256，转为小写并去掉换行
+            powershell -Command "$hash = (Get-FileHash -Algorithm SHA256 target/${{ matrix.artifact_asset }}).Hash.ToLower(); [IO.File]::WriteAllText('target/${{ matrix.artifact_asset }}.sha256', $hash)"
           else
             # Unix-like: 直接使用 shasum
-            shasum -a 256 target/${{ matrix.artifact_name }} | cut -d' ' -f1 > target/${{ matrix.artifact_asset }}.sha256
+            shasum -a 256 target/${{ matrix.artifact_asset }} | cut -d' ' -f1 > target/${{ matrix.artifact_asset }}.sha256
           fi
         shell: bash
 
@@ -98,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_asset }}
-          path: target/${{ matrix.artifact_name }}
+          path: target/${{ matrix.artifact_asset }}
           retention-days: 1
 
       - name: Upload SHA256 Artifact
@@ -120,22 +119,29 @@ jobs:
         with:
           path: artifacts
 
-      - name: Move artifacts to target directory
+      - name: Prepare release files
         run: |
-          mkdir -p target
-          cp -r artifacts/* target/
-          ls -la target/
+          mkdir -p release
+
+          # 复制所有 artifacts 到 release 目录
+          # artifacts/ 目录结构：
+          #   tree-x86_64-pc-windows-msvc.exe/ -> tree-x86_64-pc-windows-msvc.exe
+          #   tree-x86_64-unknown-linux-gnu/ -> tree-x86_64-unknown-linux-gnu
+          #   ... etc
+          for artifact_dir in artifacts/*/; do
+            if [ -d "$artifact_dir" ]; then
+              # 复制该目录下的文件到 release 目录（保留文件名）
+              cp "$artifact_dir"* release/ 2>/dev/null || true
+            fi
+          done
+
+          echo "=== Release files ==="
+          ls -la release/
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            target/tree-x86_64-pc-windows-msvc.exe
-            target/tree-x86_64-unknown-linux-gnu
-            target/tree-aarch64-unknown-linux-gnu
-            target/tree-x86_64-apple-darwin
-            target/tree-aarch64-apple-darwin
-            target/*.sha256
+          files: release/*
           draft: false
           prerelease: false
           generate_release_notes: true

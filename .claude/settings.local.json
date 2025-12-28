@@ -12,7 +12,8 @@
       "Bash(target/release/tree:*)",
       "Bash(mkdir:*)",
       "Bash(cargo clippy:*)",
-      "Bash(cargo fmt:*)"
+      "Bash(cargo fmt:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ]
   }
 }
