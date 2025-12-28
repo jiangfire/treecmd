@@ -86,9 +86,11 @@ jobs:
         id: hash
         run: |
           if [ "${{ runner.os }}" = "Windows" ]; then
-            certutil -hashfile target/${{ matrix.artifact_name }} SHA256 | findstr /v "hash" > target/${{ matrix.artifact_asset }}.sha256
+            # Windows: certutil 输出格式为多行，提取哈希值
+            certutil -hashfile target/${{ matrix.artifact_name }} SHA256 | tail -n 1 | cut -d' ' -f1 > target/${{ matrix.artifact_asset }}.sha256
           else
-            shasum -a 256 target/${{ matrix.artifact_name }} > target/${{ matrix.artifact_asset }}.sha256
+            # Unix-like: 直接使用 shasum
+            shasum -a 256 target/${{ matrix.artifact_name }} | cut -d' ' -f1 > target/${{ matrix.artifact_asset }}.sha256
           fi
         shell: bash
 
