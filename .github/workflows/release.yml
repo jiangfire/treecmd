@@ -86,7 +86,7 @@ jobs:
         run: |
           if [ "${{ runner.os }}" = "Windows" ]; then
             # Windows: 使用 PowerShell 计算 SHA256，转为小写并去掉换行
-            powershell -Command "$hash = (Get-FileHash -Algorithm SHA256 target/${{ matrix.artifact_asset }}).Hash.ToLower(); [IO.File]::WriteAllText('target/${{ matrix.artifact_asset }}.sha256', $hash)"
+            powershell -Command "(Get-FileHash -Algorithm SHA256 target/${{ matrix.artifact_asset }}).Hash.ToLower() | Out-File -Encoding ASCII -NoNewline target/${{ matrix.artifact_asset }}.sha256"
           else
             # Unix-like: 直接使用 shasum
             shasum -a 256 target/${{ matrix.artifact_asset }} | cut -d' ' -f1 > target/${{ matrix.artifact_asset }}.sha256
